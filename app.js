@@ -8,7 +8,6 @@ var express = require('express'),
     path = require('path');
 
 var partials = require('express-partials');
-var mongodb = require('mongodb');
 var flash = require('connect-flash');
 var fs = require('fs');
 
