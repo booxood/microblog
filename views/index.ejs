@@ -1,3 +1,4 @@
+<% include head %>
 <% if (!user) { %>
   <div class="hero-unit">
     <h1>欢迎来到 Microblog</h1>
@@ -8,5 +9,6 @@
     </p>
   </div>
 <% } else { %>
-   <%- partial('say') %>
+    <% include say %>
 <% } %>
+<% include foot %>
