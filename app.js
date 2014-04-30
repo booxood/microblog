@@ -2,99 +2,62 @@
  * Module dependencies.
  */
 
-var express = require('express'),
-    routes = require('./routes'),
-    http = require('http'),
-    path = require('path');
+var http = require('http');
+var path = require('path');
 
-var partials = require('express-partials');
+var express = require('express');
+var bodyParser = require('body-parser');
+var cookieParser = require('cookie-parser');
+var session = require('express-session');
 var flash = require('connect-flash');
-var fs = require('fs');
 
-var MongoStore = require('connect-mongo')(express);
-var settings = require('./settings');
-var sessionStore = new MongoStore({
-    db: settings.db
-}, function() {
-    console.log('sessionStore connect mongodb success...');
-});
-
-var accessLogfile = fs.createWriteStream('access.log', {
-    flags: 'a'
-});
-var errorLogfile = fs.createWriteStream('error.log', {
-    flags: 'a'
-});
 
 var app = express();
 
-app.configure(function() {
-    app.use(express.logger({
-        stream: accessLogfile
-    }));
+var routes = require('./routes');
 
-    app.set('port', process.env.PORT || 8080);
-    app.set('views', __dirname + '/views');
-    app.set('view engine', 'ejs');
-    //add
-    app.use(partials());
-    app.use(flash());
-    //---
-    app.use(express.favicon());
-    app.use(express.logger('dev'));
-    app.use(express.bodyParser());
-    app.use(express.methodOverride());
+app.set('port', process.env.PORT || 3000);
+app.engine('.ejs', require('ejs').__express);
+app.set('views', __dirname + '/views');
+app.set('view engine', 'ejs');
 
-    //add
-    app.use(express.cookieParser());
-    app.use(express.session({
-        secret: settings.cookieSecret,
-        cookie: {
-            maxAge: 60000 * 20
-        },
-        store: sessionStore
-    }));
-    
-    app.use(function(req, res, next) {
+app.use(function(req, res, next){
+    console.log('%s %s', req.method, req.url);
+    console.log('==== req.session');
+    console.log(req.session);
+    next();
+});
+app.use(bodyParser());
+app.use(cookieParser('abcde'));
+app.use(session({secret: 'demo', cookie: {maxAge: 360000}}));
+app.use(flash());
+app.use(function(req, res, next){
+    res.locals.user = req.session.user;
 
-        //console.log("ttttttttttest-flash--error:" + req.flash('error'));
-        res.locals.user = req.session.user;
-        res.locals.errorF = function() {
-            var err = req.flash('error');
-            //console.log("ttttttttttest-flash--err:" + err);
-            if (err.length)
-                return err;
-            else
-                return null;
-        };
-        res.locals.successF = function() {
-            var succ = req.flash('success');
-            if (succ.length)
-                return succ;
-            else
-                return null;
-        };
-        next();
-    });
-    //---
-    //app.use(app.router);
-    app.use(express.static(path.join(__dirname, 'public')));
+    res.locals.errorF = function() {
+        var err = req.flash('error');
+        if (err.length)
+            return err;
+        else
+            return null;
+    };
+    res.locals.successF = function() {
+        var succ = req.flash('success');
+        if (succ.length)
+            return succ;
+        else
+            return null;
+    };
+    next();
 });
 
-app.configure('development', function() {
-    app.use(express.errorHandler());
-});
 
-app.configure('production', function() {
-    app.error(function(err, req, res, next) {
-        var meta = '[' + new Date() + ']' + req.url + '\n';
-        errorLogfile.write(meta + err.stack + '\n');
-    });
-});
+app.use(express.static(__dirname + '/public'));
 
+//==== Router
 app.get('/', routes.index);
 //跳转到用户个人页面
-//app.get('/u/:username',routes.checkLogin);
+// app.get('/u/:username', routes.checkLogin);
 app.get('/u/:username', routes.user);
 //发言
 app.post('/post', routes.checkLogin);
@@ -115,13 +78,20 @@ app.post('/login', routes.doLogin);
 app.get('/logout', routes.checkLogin);
 app.get('/logout', routes.logout);
 
-//test
-app.get('/list', function(req, res) {
-    res.render('list', {
-        title: 'List',
-        items: [11, 22, 'aa', 'bb']
-    });
-})
+//development
+if(app.get('env') == 'development'){
+
+}
+
+//production
+if(app.get('env') == 'production'){
+
+}
+
+app.use(function(req, res){
+    res.end('ok');
+});
+
 
 if (!module.parent) {
     http.createServer(app).listen(app.get('port'), function() {
