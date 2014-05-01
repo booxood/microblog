@@ -23,8 +23,6 @@ app.set('view engine', 'ejs');
 
 app.use(function(req, res, next){
     console.log('%s %s', req.method, req.url);
-    console.log('==== req.session');
-    console.log(req.session);
     next();
 });
 app.use(bodyParser());

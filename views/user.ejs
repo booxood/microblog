@@ -1,3 +1,5 @@
+<% include head %>
+
 <% if (user) { %>
     <% include say %>
 <% } %>
@@ -18,3 +20,5 @@
 <% if (posts.length % 3 != 0) { %>
   </div><!-- end row -->
 <% } %>
+
+<% include foot %>
