@@ -6,6 +6,7 @@ var http = require('http');
 var path = require('path');
 
 var express = require('express');
+var methodOverride = require('method-override');
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var session = require('express-session');
@@ -22,6 +23,7 @@ app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 
 app.use(bodyParser());
+app.use(methodOverride());
 app.use(cookieParser('abcde'));
 app.use(session({secret: 'demo', cookie: {maxAge: 360000}}));
 app.use(flash());
