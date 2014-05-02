@@ -10,7 +10,7 @@ var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var session = require('express-session');
 var flash = require('connect-flash');
-
+var logger = require('morgan');
 
 var app = express();
 
@@ -21,10 +21,6 @@ app.engine('.ejs', require('ejs').__express);
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 
-app.use(function(req, res, next){
-    console.log('%s %s', req.method, req.url);
-    next();
-});
 app.use(bodyParser());
 app.use(cookieParser('abcde'));
 app.use(session({secret: 'demo', cookie: {maxAge: 360000}}));
@@ -52,6 +48,17 @@ app.use(function(req, res, next){
 
 app.use(express.static(__dirname + '/public'));
 
+//development
+if(app.get('env') == 'development'){
+    app.use(logger('dev'));
+}
+
+//production
+if(app.get('env') == 'production'){
+    app.use(logger());
+}
+
+
 //==== Router
 app.get('/', routes.index);
 //跳转到用户个人页面
@@ -76,15 +83,6 @@ app.post('/login', routes.doLogin);
 app.get('/logout', routes.checkLogin);
 app.get('/logout', routes.logout);
 
-//development
-if(app.get('env') == 'development'){
-
-}
-
-//production
-if(app.get('env') == 'production'){
-
-}
 
 app.use(function(req, res){
     res.end('ok');
