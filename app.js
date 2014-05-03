@@ -6,46 +6,48 @@ var http = require('http');
 var path = require('path');
 
 var express = require('express');
-var methodOverride = require('method-override');
 var bodyParser = require('body-parser');
+var multer = require('multer');
+var methodOverride = require('method-override');
 var cookieParser = require('cookie-parser');
 var session = require('express-session');
+var MongoStore = require('connect-mongo')({session: session});
 var flash = require('connect-flash');
 var logger = require('morgan');
+var compression = require('compression');
 
 var app = express();
 
+var settings = require('./settings.js');
 var routes = require('./routes');
+var viewHelpers = require('./utils/viewHelpers.js');
 
 app.set('port', process.env.PORT || 3000);
 app.engine('.ejs', require('ejs').__express);
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 
+app.disable('x-powered-by');
+
 app.use(bodyParser());
+app.use(multer());
 app.use(methodOverride());
 app.use(cookieParser('abcde'));
-app.use(session({secret: 'demo', cookie: {maxAge: 360000}}));
+app.use(session({
+    secret: 'demo',
+    cookie: {maxAge: 360000},
+    store: new MongoStore({
+        url: settings.host + '/' + settings.db,
+        collection: 'sessions',
+        auto_reconnect: true
+    })
+}));
 app.use(flash());
 app.use(function(req, res, next){
     res.locals.user = req.session.user;
-
-    res.locals.errorF = function() {
-        var err = req.flash('error');
-        if (err.length)
-            return err;
-        else
-            return null;
-    };
-    res.locals.successF = function() {
-        var succ = req.flash('success');
-        if (succ.length)
-            return succ;
-        else
-            return null;
-    };
     next();
 });
+app.use(viewHelpers());
 
 
 app.use(express.static(__dirname + '/public'));
@@ -57,7 +59,14 @@ if(app.get('env') == 'development'){
 
 //production
 if(app.get('env') == 'production'){
+    console.log('production');
     app.use(logger());
+    app.use(compression({
+        filter: function(req, res){
+            return /json|text|javascript|css/.test(res.getHeader('Content-Type'));
+        },
+        level: 9
+    }));
 }
 
 
