@@ -16,11 +16,14 @@ var flash = require('connect-flash');
 var logger = require('morgan');
 var compression = require('compression');
 
-var app = express();
-
 var settings = require('./settings.js');
-var routes = require('./routes');
 var viewHelpers = require('./utils/viewHelpers.js');
+
+var indexRouter = require('./routes/index');
+var userRouter = require('./routes/user');
+
+
+var app = express();
 
 app.set('port', process.env.PORT || 3000);
 app.engine('.ejs', require('ejs').__express);
@@ -59,7 +62,6 @@ if(app.get('env') == 'development'){
 
 //production
 if(app.get('env') == 'production'){
-    console.log('production');
     app.use(logger());
     app.use(compression({
         filter: function(req, res){
@@ -70,34 +72,9 @@ if(app.get('env') == 'production'){
 }
 
 
-//==== Router
-app.get('/', routes.index);
-//跳转到用户个人页面
-// app.get('/u/:username', routes.checkLogin);
-app.get('/u/:username', routes.user);
-//发言
-app.post('/post', routes.checkLogin);
-app.post('/post', routes.post);
-//跳转到注册页面
-app.get('/reg', routes.checkNotLogin);
-app.get('/reg', routes.reg);
-//注册提交
-app.post('/reg', routes.checkNotLogin);
-app.post('/reg', routes.doReg);
-//跳转到登录页面
-app.get('/login', routes.checkNotLogin);
-app.get('/login', routes.login);
-//登录提交
-app.post('/login', routes.checkNotLogin);
-app.post('/login', routes.doLogin);
-//注销
-app.get('/logout', routes.checkLogin);
-app.get('/logout', routes.logout);
-
-
-app.use(function(req, res){
-    res.end('ok');
-});
+// Router
+app.use(indexRouter);
+app.use(userRouter);
 
 
 if (!module.parent) {
