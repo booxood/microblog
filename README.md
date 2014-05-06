@@ -1,4 +1,12 @@
 microblog
 ====
 
-根据《Node.js开发指南》完成的，采用了express.js 3.x的版本。
+《Node.js开发指南》上的示例。
+
+
+### Tags:
+
+v1.0基于express.js 3.x。
+
+
+v2.0基于express.js 4.x。
