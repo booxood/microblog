@@ -28,7 +28,7 @@ if(cluster.isMaster){
     }
 }else{
     var app = require('./app');
-    app.listen(8080);
+    //app.listen(8080);
 }
 
 process.on('SIGTERM',function(){
